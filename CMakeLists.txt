@@ -19,6 +19,21 @@ option(NBODY_BUILD_TESTS "Build unit tests" ON)
 
 include(cmake/Dependencies.cmake)
 
+# libc++ before 20 (Xcode 16 and older) ships std::jthread/stop_token only behind this flag.
+include(CheckCXXSourceCompiles)
+set(JTHREAD_PROBE "#include <thread>\nint main() { std::jthread t([](std::stop_token) {}); }")
+check_cxx_source_compiles("${JTHREAD_PROBE}" NBODY_HAS_JTHREAD)
+if(NOT NBODY_HAS_JTHREAD)
+  set(CMAKE_REQUIRED_FLAGS -fexperimental-library)
+  check_cxx_source_compiles("${JTHREAD_PROBE}" NBODY_HAS_JTHREAD_EXPERIMENTAL)
+  unset(CMAKE_REQUIRED_FLAGS)
+  if(NOT NBODY_HAS_JTHREAD_EXPERIMENTAL)
+    message(FATAL_ERROR "std::jthread is unavailable; use Xcode 16+ or a newer toolchain")
+  endif()
+  add_compile_options($<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fexperimental-library>)
+  add_link_options(-fexperimental-library)
+endif()
+
 add_library(nbody_warnings INTERFACE)
 target_compile_options(nbody_warnings INTERFACE -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wno-sign-conversion)
 
