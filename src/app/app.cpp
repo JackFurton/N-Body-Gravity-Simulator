@@ -212,6 +212,15 @@ void App::draw_ui() {
     params_changed |= ImGui::SliderFloat("dt", &settings.params.dt, 1e-4f, 0.05f, "%.4f", ImGuiSliderFlags_Logarithmic);
     params_changed |= ImGui::SliderFloat("softening", &settings.params.softening, 0.005f, 2.0f, "%.3f",
                                          ImGuiSliderFlags_Logarithmic);
+    int kernel = int(settings.params.kernel);
+    if (ImGui::BeginCombo("force kernel", kForceKernelNames[size_t(kernel)].data())) {
+      for (int i = 0; i < int(kForceKernelNames.size()); ++i)
+        if (ImGui::Selectable(kForceKernelNames[size_t(i)].data(), i == kernel)) {
+          settings.params.kernel = ForceKernel(i);
+          params_changed = true;
+        }
+      ImGui::EndCombo();
+    }
     if (params_changed) runner_.set_params(settings.params);
     if (ImGui::SliderFloat("max steps/s", &settings.target_steps_per_sec, 1.0f, 2000.0f, "%.0f",
                            ImGuiSliderFlags_Logarithmic))

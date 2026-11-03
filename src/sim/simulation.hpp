@@ -5,6 +5,7 @@
 #include <glm/vec3.hpp>
 
 #include "sim/bodies.hpp"
+#include "sim/force_kernels.hpp"
 
 namespace nbody {
 
@@ -12,6 +13,7 @@ struct SimParams {
   float dt = 0.004f;
   float softening = 0.05f;
   float G = 1.0f;
+  ForceKernel kernel = kDefaultForceKernel;
 
   bool operator==(const SimParams&) const = default;
 };
@@ -26,7 +28,7 @@ struct Diagnostics {
 };
 
 // Softened direct summation, O(n^2). Writes ax/ay/az.
-void compute_accelerations_direct(Bodies& bodies, float G, float softening);
+void compute_accelerations_direct(Bodies& bodies, const SimParams& params);
 
 // Kinetic and (softened) potential energy plus momenta, accumulated in double. O(n^2).
 Diagnostics compute_diagnostics(const Bodies& bodies, float G, float softening);
