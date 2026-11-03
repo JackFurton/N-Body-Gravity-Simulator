@@ -40,6 +40,7 @@ target_compile_options(nbody_warnings INTERFACE -Wall -Wextra -Wpedantic -Wshado
 add_library(nbody_core STATIC
   src/sim/simulation.cpp
   src/sim/scenarios.cpp
+  src/sim/force_kernels.cpp
   src/sim/sim_runner.cpp
   src/render/camera.cpp
 )
@@ -66,6 +67,9 @@ if(NBODY_BUILD_APP)
     "-framework Metal" "-framework QuartzCore" "-framework Cocoa" "-framework ImageIO" "-framework CoreGraphics")
 endif()
 
+add_executable(nbody_bench bench/bench_forces.cpp)
+target_link_libraries(nbody_bench PRIVATE nbody_core nbody_warnings)
+
 if(NBODY_BUILD_TESTS)
   enable_testing()
   add_executable(nbody_tests
@@ -74,6 +78,7 @@ if(NBODY_BUILD_TESTS)
     tests/test_triple_buffer.cpp
     tests/test_camera.cpp
     tests/test_sim_runner.cpp
+    tests/test_force_kernels.cpp
   )
   target_link_libraries(nbody_tests PRIVATE nbody_core doctest_headers nbody_warnings)
   add_test(NAME nbody_tests COMMAND nbody_tests)

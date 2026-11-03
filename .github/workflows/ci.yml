@@ -29,6 +29,11 @@ jobs:
       - name: Test
         run: ctest --preset release
 
+      - name: Benchmark
+        run: |
+          echo "### Force kernels (\`nbody_bench\`, GitHub runner)" >> "$GITHUB_STEP_SUMMARY"
+          ./build/release/nbody_bench --sizes 1024,4096 --reps 3 --markdown >> "$GITHUB_STEP_SUMMARY"
+
       - name: Headless render smoke test
         run: ./build/release/nbody --headless --bodies 2048 --capture-step 200 --capture smoke.png
 
@@ -53,3 +58,8 @@ jobs:
           cmake --preset debug -DNBODY_BUILD_APP=OFF
           cmake --build --preset debug
           ./build/debug/nbody_tests
+      - name: Portable SIMD fallback
+        run: |
+          cmake -S . -B build/portable -G Ninja -DNBODY_BUILD_APP=OFF -DCMAKE_CXX_FLAGS=-DNBODY_SIMD_PORTABLE
+          cmake --build build/portable
+          ./build/portable/nbody_tests

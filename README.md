@@ -37,4 +37,4 @@ Scenarios: `disk`, `collision`, `plummer`, `collapse`. `--headless` renders offs
 
 ## Physics
 
-Kick-drift-kick leapfrog with Plummer softening, G = 1. Leapfrog is symplectic, so energy error oscillates instead of drifting; the panel shows the live drift and virial ratio, and the tests check a closed two-body orbit, momentum conservation and Plummer equilibrium. Forces are O(n^2) direct summation for now, which tops out around ~1 G interactions/s on one core. Phases 2 and 3 replace that with SIMD, a thread pool and Barnes-Hut.
+Kick-drift-kick leapfrog with Plummer softening, G = 1. Leapfrog is symplectic, so energy error oscillates instead of drifting; the panel shows the live drift and virial ratio, and the tests check a closed two-body orbit, momentum conservation and Plummer equilibrium. Forces are O(n^2) direct summation, about 5 G interactions/s on one M5 core. `nbody_bench` compares every kernel variant against a double-precision reference; the thread pool and Barnes-Hut come next.
