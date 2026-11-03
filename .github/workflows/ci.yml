@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja
+        run: brew install ninja
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/release/_deps/*-subbuild/*-populate-prefix/src
+          key: deps-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      - name: Configure
+        run: cmake --preset release
+
+      - name: Build
+        run: cmake --build --preset release
+
+      - name: Test
+        run: ctest --preset release
+
+      - name: Headless render smoke test
+        run: ./build/release/nbody --headless --bodies 2048 --capture-step 200 --capture smoke.png
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smoke-render
+          path: smoke.png
+
+  sanitizers:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install ninja
+      - name: ThreadSanitizer
+        run: |
+          cmake -S . -B build/tsan -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNBODY_BUILD_APP=OFF \
+            -DCMAKE_CXX_FLAGS=-fsanitize=thread -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=thread
+          cmake --build build/tsan
+          ./build/tsan/nbody_tests
+      - name: Address + UB sanitizers
+        run: |
+          cmake --preset debug -DNBODY_BUILD_APP=OFF
+          cmake --build --preset debug
+          ./build/debug/nbody_tests
